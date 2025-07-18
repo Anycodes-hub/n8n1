@@ -1,11 +1,11 @@
 FROM node:20.19-bullseye
 
-# Environment variables
+# Environment
 ENV NODE_ENV=production
 ENV PIP_NO_CACHE_DIR=1
 ENV PYTHONUNBUFFERED=1
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     build-essential \
@@ -25,25 +25,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     imagemagick \
     fonts-dejavu-core \
     fonts-dejavu-extra \
- && apt-get clean \ 
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install latest n8n globally
+# Install n8n globally
 RUN npm install -g n8n@latest
 
-# Clone and install latest Coqui TTS
-RUN git clone https://github.com/coqui-ai/TTS.git /coqui
-WORKDIR /coqui
-RUN python3 -m venv tts-env
-RUN . tts-env/bin/activate && pip install --upgrade pip
-RUN . tts-env/bin/activate && pip install -r requirements.txt
-RUN . tts-env/bin/activate && pip install .
+# Install latest Coqui TTS globally
+RUN git clone https://github.com/coqui-ai/TTS.git /coqui \
+ && cd /coqui \
+ && pip install --upgrade pip \
+ && pip install -r requirements.txt \
+ && pip install .
 
-# Set working directory for n8n
+# Create working directory
 WORKDIR /app
 
 # Expose n8n port
 EXPOSE 5678
 
-# Default command to run n8n
+# Run n8n
 CMD ["n8n"]
