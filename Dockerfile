@@ -7,7 +7,8 @@ ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
+    wget \
+    xz-utils \
     build-essential \
     python3 \
     python3-pip \
@@ -16,7 +17,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     espeak \
     git \
     curl \
-    wget \
     libsndfile1 \
     libglib2.0-0 \
     libsm6 \
@@ -27,6 +27,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-dejavu-extra \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# Install FFmpeg v6.0+ (static build)
+RUN cd /usr/local/bin && \
+    wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+    tar -xf ffmpeg-release-amd64-static.tar.xz --strip-components=1 --wildcards '*/ffmpeg' && \
+    rm ffmpeg-release-amd64-static.tar.xz
 
 # Install n8n globally
 RUN npm install -g n8n@latest
