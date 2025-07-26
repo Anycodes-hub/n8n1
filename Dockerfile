@@ -1,11 +1,9 @@
 FROM node:20.19-bullseye
 
-# Environment
 ENV NODE_ENV=production
 ENV PIP_NO_CACHE_DIR=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies + build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
@@ -39,7 +37,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Build FFmpeg 7.0.2 with drawtext and other essential codecs
 RUN mkdir -p /build && cd /build && \
     wget https://ffmpeg.org/releases/ffmpeg-7.0.2.tar.xz && \
     tar -xf ffmpeg-7.0.2.tar.xz && cd ffmpeg-7.0.2 && \
@@ -62,24 +59,18 @@ RUN mkdir -p /build && cd /build && \
     make -j$(nproc) && make install && \
     cd / && rm -rf /build
 
-# Confirm FFmpeg version
 RUN ffmpeg -version
 
-# Install n8n globally
 RUN npm install -g n8n@latest
 
-# Install Coqui TTS globally
 RUN git clone https://github.com/coqui-ai/TTS.git /coqui \
  && cd /coqui \
  && pip install --upgrade pip \
  && pip install -r requirements.txt \
  && pip install .
 
-# Working directory
 WORKDIR /app
 
-# Expose n8n port
 EXPOSE 5678
 
-# Start n8n
 CMD ["n8n"]
