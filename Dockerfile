@@ -4,6 +4,10 @@ ENV NODE_ENV=production
 ENV PIP_NO_CACHE_DIR=1
 ENV PYTHONUNBUFFERED=1
 
+# Add non-free repo for Debian bullseye if you want libfdk-aac-dev (optional)
+# RUN echo "deb http://deb.debian.org/debian bullseye main contrib non-free" > /etc/apt/sources.list && \
+#     echo "deb-src http://deb.debian.org/debian bullseye main contrib non-free" >> /etc/apt/sources.list
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
@@ -21,7 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libx265-dev \
     libvpx-dev \
     libopus-dev \
-    libfdk-aac-dev \
     python3 \
     python3-pip \
     python3-venv \
@@ -37,9 +40,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+# Build FFmpeg 6.0.4 from source with drawtext support
 RUN mkdir -p /build && cd /build && \
-    wget https://ffmpeg.org/releases/ffmpeg-7.0.2.tar.xz && \
-    tar -xf ffmpeg-7.0.2.tar.xz && cd ffmpeg-7.0.2 && \
+    wget https://ffmpeg.org/releases/ffmpeg-6.0.4.tar.xz && \
+    tar -xf ffmpeg-6.0.4.tar.xz && cd ffmpeg-6.0.4 && \
     ./configure \
       --enable-gpl \
       --enable-version3 \
@@ -59,10 +63,13 @@ RUN mkdir -p /build && cd /build && \
     make -j$(nproc) && make install && \
     cd / && rm -rf /build
 
+# Verify FFmpeg version after build
 RUN ffmpeg -version
 
+# Install n8n globally
 RUN npm install -g n8n@latest
 
+# Install Coqui TTS globally
 RUN git clone https://github.com/coqui-ai/TTS.git /coqui \
  && cd /coqui \
  && pip install --upgrade pip \
