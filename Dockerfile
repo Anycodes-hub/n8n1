@@ -5,19 +5,30 @@ ENV NODE_ENV=production
 ENV PIP_NO_CACHE_DIR=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
+# Install system dependencies + build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
-    xz-utils \
+    curl \
+    git \
     build-essential \
+    yasm \
+    pkg-config \
+    libfreetype6-dev \
+    libfontconfig1 \
+    libfribidi-dev \
+    libass-dev \
+    libssl-dev \
+    libvorbis-dev \
+    libx264-dev \
+    libx265-dev \
+    libvpx-dev \
+    libopus-dev \
+    libfdk-aac-dev \
     python3 \
     python3-pip \
     python3-venv \
     python3-dev \
     espeak \
-    git \
-    curl \
-    libsndfile1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
@@ -28,27 +39,47 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install FFmpeg v6.0+ (static build)
-RUN cd /usr/local/bin && \
-    wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
-    tar -xf ffmpeg-release-amd64-static.tar.xz --strip-components=1 --wildcards '*/ffmpeg' && \
-    rm ffmpeg-release-amd64-static.tar.xz
+# Build FFmpeg 7.0.2 with drawtext and other essential codecs
+RUN mkdir -p /build && cd /build && \
+    wget https://ffmpeg.org/releases/ffmpeg-7.0.2.tar.xz && \
+    tar -xf ffmpeg-7.0.2.tar.xz && cd ffmpeg-7.0.2 && \
+    ./configure \
+      --enable-gpl \
+      --enable-version3 \
+      --enable-libfreetype \
+      --enable-libfontconfig \
+      --enable-libfribidi \
+      --enable-libass \
+      --enable-libx264 \
+      --enable-libx265 \
+      --enable-libvpx \
+      --enable-libopus \
+      --enable-libvorbis \
+      --enable-nonfree \
+      --enable-static \
+      --disable-debug \
+      --disable-shared && \
+    make -j$(nproc) && make install && \
+    cd / && rm -rf /build
+
+# Confirm FFmpeg version
+RUN ffmpeg -version
 
 # Install n8n globally
 RUN npm install -g n8n@latest
 
-# Install latest Coqui TTS globally
+# Install Coqui TTS globally
 RUN git clone https://github.com/coqui-ai/TTS.git /coqui \
  && cd /coqui \
  && pip install --upgrade pip \
  && pip install -r requirements.txt \
  && pip install .
 
-# Create working directory
+# Working directory
 WORKDIR /app
 
 # Expose n8n port
 EXPOSE 5678
 
-# Run n8n
+# Start n8n
 CMD ["n8n"]
