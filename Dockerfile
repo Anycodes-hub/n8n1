@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /build && cd /build && \
-    wget https://ffmpeg.org/releases/ffmpeg-6.0.5.tar.xz && \
-    tar -xf ffmpeg-6.0.5.tar.xz && cd ffmpeg-6.0.5 && \
+    wget https://ffmpeg.org/releases/ffmpeg-6.0.5.tar.bz2 && \
+    tar -xf ffmpeg-6.0.5.tar.bz2 && cd ffmpeg-6.0.5 && \
     ./configure --enable-gpl --enable-version3 --enable-libfreetype --enable-libfontconfig --enable-libfribidi --enable-libass --enable-libx264 --enable-libx265 --enable-libvpx --enable-libopus --enable-libvorbis --enable-nonfree || (cat config.log && false) && \
     make -j$(nproc) || (tail -n 100 config.log && false) && \
     make install && \
